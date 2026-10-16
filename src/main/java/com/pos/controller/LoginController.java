@@ -15,6 +15,11 @@ import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import java.io.IOException;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
+import javafx.stage.Stage;
+
 public class LoginController {
 @FXML
 private TextField usernameField;
@@ -73,7 +78,7 @@ private void handleLogin() {
                 String role = rs.getString("role");
 
                 messageLabel.setText("");
-                showDashboard(userId, fullName, role);
+               openDashboard(userId, fullName, role);
 
             } else {
                 messageLabel.setText(
@@ -102,44 +107,28 @@ private void handleClear() {
     messageLabel.setText("");
 }
 
-private void showDashboard(int userId, String fullName, String role) {
-    
-Stage stage = (Stage) loginButton.getScene().getWindow();
-Label title = new Label("POS SYSTEM");
-title.setStyle("-fx-font-size: 24px; -fx-font-weight: bold;");
-Label welcome = new Label("Welcome, " + fullName + "!");
-Label info = new Label(
-"User ID: " + userId + " | Role: " + role
+private void openDashboard(int userId,
+String fullName,
+String role) {
+try {
+FXMLLoader loader = new FXMLLoader(
+getClass().getResource("/com/pos/view/dashboard.fxml")
 );
-
-Label access = new Label();
-if (role.equals("Owner") || role.equals("Administrator")) {
-    access.setText("Administrator access");
-} else if (role.equals("Cashier")) {
-    access.setText("Cashier access");
-} else {
-    access.setText(role + " access");
-}
-
-
-Button logoutButton = new Button("Logout");
-VBox dashboard = new VBox(15, title, welcome, info, logoutButton);
-dashboard.setAlignment(Pos.CENTER);
-dashboard.setPadding(new Insets(30));
-Scene dashboardScene = new Scene(dashboard, 600, 400);
-Scene loginScene = loginButton.getScene();
-// Return to the same login scene when Logout is clicked.
-logoutButton.setOnAction(event -> {
-usernameField.clear();
-passwordField.clear();
-messageLabel.setText("");
-stage.setTitle("POS System - Login");
-stage.setScene(loginScene);
-stage.setResizable(false);
-usernameField.requestFocus();
-});
+Scene dashboardScene = new Scene(loader.load(), 900, 600);
+DashboardController dashboardController = loader.getController();
+dashboardController.setLoggedInUser(
+userId,
+fullName,
+role
+);
+Stage stage = (Stage) loginButton.getScene().getWindow();
 stage.setTitle("POS System - Dashboard");
 stage.setScene(dashboardScene);
 stage.setResizable(true);
+stage.centerOnScreen();
+} catch (IOException e) {
+messageLabel.setText("Unable to open dashboard.");
+e.printStackTrace();
+}
 }
 }
