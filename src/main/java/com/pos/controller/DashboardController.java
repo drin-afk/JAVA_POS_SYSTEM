@@ -23,6 +23,16 @@ public class DashboardController {
     @FXML
     private Label dateLabel;
 
+    // Header user chip
+    @FXML
+    private Label userNameLabel;
+
+    @FXML
+    private Label roleBadgeLabel;
+
+    @FXML
+    private Label initialsLabel;
+
     private int userId;
     private String fullName;
     private String role;
@@ -53,6 +63,20 @@ public class DashboardController {
         userInfoLabel.setText(
                 "User ID: " + userId + " | Role: " + role
         );
+
+        // Header user chip: name, role badge, and initials avatar
+        userNameLabel.setText(fullName);
+        roleBadgeLabel.setText(getDisplayRole().toUpperCase());
+        initialsLabel.setText(getInitials(fullName));
+    }
+
+    private String getInitials(String name) {
+        String[] parts = name.trim().split("\\s+");
+        String initials = parts[0].substring(0, 1);
+        if (parts.length > 1) {
+            initials += parts[parts.length - 1].substring(0, 1);
+        }
+        return initials.toUpperCase();
     }
 
     // In pastry_shop_db the administrator account has the role "Owner".
@@ -90,12 +114,43 @@ public class DashboardController {
         );
     }
 
+    // Laboratory 7: opens the real User Management window (Administrator only).
     @FXML
     private void openUsers() {
-        showModuleMessage(
-                "User Management",
-                "The User Management module will be developed in Laboratory 7."
-        );
+        if (!isAdministrator()) {
+            showModuleMessage(
+                    "Access Denied",
+                    "Only an Administrator can manage user accounts."
+            );
+            return;
+        }
+
+        try {
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource(
+                            "/com/pos/view/user_management.fxml"
+                    )
+            );
+
+            Scene scene = new Scene(loader.load(), 1000, 650);
+
+            UserManagementController controller = loader.getController();
+            controller.setLoggedInUserId(userId);
+
+            Stage userStage = new Stage();
+            userStage.setTitle("POS System - User Management");
+            userStage.initOwner(welcomeLabel.getScene().getWindow());
+            userStage.setScene(scene);
+            userStage.centerOnScreen();
+            userStage.showAndWait();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            showModuleMessage(
+                    "Navigation Error",
+                    "Unable to open User Management."
+            );
+        }
     }
 
     @FXML
@@ -119,7 +174,7 @@ public class DashboardController {
         alert.setTitle(title);
         alert.setHeaderText(title);
         alert.setContentText(message);
-        alert.getDialogPane().setStyle("-fx-background-color: #fdf3e7;");
+        styleDialog(alert);
         alert.showAndWait();
     }
 
@@ -133,7 +188,7 @@ public class DashboardController {
         );
         confirm.setTitle("Logout");
         confirm.setHeaderText("Confirm Logout");
-        confirm.getDialogPane().setStyle("-fx-background-color: #fdf3e7;");
+        styleDialog(confirm);
 
         if (confirm.showAndWait().orElse(ButtonType.NO)
                 == ButtonType.YES) {
@@ -147,7 +202,7 @@ public class DashboardController {
                     getClass().getResource("/com/pos/view/login.fxml")
             );
 
-            // No fixed size: the login screen uses its own 760 x 460 layout.
+            // No fixed size: the login screen uses its own 860 x 520 layout.
             Scene loginScene = new Scene(loader.load());
             Stage stage = (Stage) welcomeLabel.getScene().getWindow();
 
@@ -163,5 +218,12 @@ public class DashboardController {
                     "Unable to return to the Login screen."
             );
         }
+    }
+
+    // Applies the shared pastry shop dialog style (pos.css).
+    private void styleDialog(Alert alert) {
+        alert.getDialogPane().getStylesheets().add(
+                getClass().getResource("/com/pos/view/pos.css").toExternalForm());
+        alert.getDialogPane().getStyleClass().add("pos-dialog");
     }
 }
