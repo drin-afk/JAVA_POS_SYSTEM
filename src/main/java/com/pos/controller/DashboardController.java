@@ -97,12 +97,30 @@ public class DashboardController {
         );
     }
 
+    // Laboratory 8: opens the real Product Management window
     @FXML
     private void openProducts() {
-        showModuleMessage(
-                "Product Management",
-                "The Product Management module will be developed in Laboratory 8."
-        );
+        try {
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/com/pos/view/product_management.fxml")
+            );
+
+            Scene scene = new Scene(loader.load(), 1050, 660);
+
+            Stage productStage = new Stage();
+            productStage.setTitle("POS System - Product Management");
+            productStage.initOwner(welcomeLabel.getScene().getWindow());
+            productStage.setScene(scene);
+            productStage.centerOnScreen();
+            productStage.showAndWait();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            showModuleMessage(
+                    "Navigation Error",
+                    "Unable to open Product Management."
+            );
+        }
     }
 
     // Exercise 3: INVENTORY placeholder
